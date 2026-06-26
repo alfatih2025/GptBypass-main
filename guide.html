@@ -1,0 +1,462 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>GPT 道德限制优化工具 - 使用指南</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{--primary:#79c6b2;--primary-dark:#4e9b8c;--primary-light:#eaf7f3;--bg:#f5f8fc;--surface:#fff;--text:#1f3442;--muted:#708793;--border:#dbe7ea;--danger:#ee7d8b;--sidebar:#eef5f7;--code-bg:#edf5f7;--chip:#eef7f4}
+html{scroll-behavior:smooth}
+body{font-family:'Microsoft YaHei UI','Segoe UI',system-ui,sans-serif;background:var(--bg);color:var(--text);line-height:1.7}
+a{color:var(--primary-dark);text-decoration:none}
+a:hover{text-decoration:underline}
+
+/* Hero */
+.hero{background:linear-gradient(135deg,#79c6b2 0%,#4e9b8c 50%,#3a8a7a 100%);color:#fff;padding:80px 40px;text-align:center;position:relative;overflow:hidden}
+.hero::before{content:'';position:absolute;top:-50%;left:-50%;width:200%;height:200%;background:radial-gradient(circle,rgba(255,255,255,.08) 0%,transparent 60%);animation:pulse 6s ease-in-out infinite}
+@keyframes pulse{0%,100%{transform:scale(1)}50%{transform:scale(1.05)}}
+.hero h1{font-size:2.8em;font-weight:700;margin-bottom:12px;text-shadow:0 2px 8px rgba(0,0,0,.15)}
+.hero p{font-size:1.2em;opacity:.92;max-width:640px;margin:0 auto}
+.hero .version{display:inline-block;background:rgba(255,255,255,.2);padding:4px 16px;border-radius:20px;font-size:.85em;margin-top:16px;backdrop-filter:blur(4px)}
+
+/* Nav */
+.nav{background:var(--surface);border-bottom:1px solid var(--border);position:sticky;top:0;z-index:100;box-shadow:0 2px 12px rgba(0,0,0,.04)}
+.nav-inner{max-width:1100px;margin:0 auto;display:flex;gap:0;padding:0 24px}
+.nav a{display:block;padding:16px 20px;font-size:.92em;color:var(--muted);border-bottom:3px solid transparent;transition:all .2s}
+.nav a:hover,.nav a.active{color:var(--primary-dark);border-bottom-color:var(--primary);text-decoration:none}
+
+/* Container */
+.container{max-width:1100px;margin:0 auto;padding:40px 24px}
+
+/* Section */
+.section{margin-bottom:60px}
+.section-title{font-size:1.6em;font-weight:700;color:var(--text);margin-bottom:8px;display:flex;align-items:center;gap:12px}
+.section-title .icon{width:36px;height:36px;background:var(--primary);color:#fff;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:1em;font-weight:700}
+.section-desc{color:var(--muted);margin-bottom:28px;font-size:.95em}
+
+/* Card */
+.card{background:var(--surface);border:1px solid var(--border);border-radius:20px;padding:28px 32px;margin-bottom:20px;box-shadow:0 2px 16px rgba(0,0,0,.03);transition:transform .2s,box-shadow .2s}
+.card:hover{transform:translateY(-2px);box-shadow:0 6px 24px rgba(0,0,0,.06)}
+.card-header{font-size:1.15em;font-weight:600;margin-bottom:16px;color:var(--primary-dark);display:flex;align-items:center;gap:10px}
+.card-header .dot{width:8px;height:8px;border-radius:50%;background:var(--primary)}
+
+/* Config table */
+.cfg-table{width:100%;border-collapse:separate;border-spacing:0;border-radius:12px;overflow:hidden;border:1px solid var(--border)}
+.cfg-table th{background:var(--primary-light);color:var(--primary-dark);font-weight:600;text-align:left;padding:12px 16px;font-size:.88em}
+.cfg-table td{padding:12px 16px;border-top:1px solid var(--border);font-size:.9em;vertical-align:top}
+.cfg-table tr:hover td{background:var(--chip)}
+.cfg-table code{background:var(--code-bg);padding:2px 8px;border-radius:6px;font-size:.88em;color:var(--primary-dark);font-family:'Cascadia Code',Consolas,monospace}
+
+/* Flow */
+.flow{display:flex;align-items:center;justify-content:center;gap:0;flex-wrap:wrap;padding:20px 0}
+.flow-step{background:var(--surface);border:2px solid var(--primary);border-radius:16px;padding:20px 24px;text-align:center;min-width:160px;position:relative}
+.flow-step .num{position:absolute;top:-12px;left:50%;transform:translateX(-50%);background:var(--primary);color:#fff;width:24px;height:24px;border-radius:50%;font-size:.8em;display:flex;align-items:center;justify-content:center;font-weight:700}
+.flow-step h4{font-size:.95em;margin-bottom:4px;color:var(--text)}
+.flow-step p{font-size:.8em;color:var(--muted)}
+.flow-arrow{color:var(--primary);font-size:1.5em;padding:0 8px}
+
+/* Feature grid */
+.feature-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:20px}
+.feature-item{background:var(--primary-light);border-radius:16px;padding:24px;border:1px solid var(--border)}
+.feature-item h4{color:var(--primary-dark);margin-bottom:8px;font-size:1em}
+.feature-item p{color:var(--muted);font-size:.88em}
+
+/* Tab demo */
+.tab-demo{display:flex;background:var(--sidebar);border-radius:16px;overflow:hidden;border:1px solid var(--border)}
+.tab-sidebar{width:220px;padding:20px 0;border-right:1px solid var(--border);flex-shrink:0}
+.tab-sidebar .tab-item{padding:12px 24px;font-size:.9em;color:var(--muted);cursor:pointer;transition:all .2s;border-left:3px solid transparent}
+.tab-sidebar .tab-item:hover{background:var(--primary-light)}
+.tab-sidebar .tab-item.active{background:var(--surface);color:var(--primary-dark);font-weight:600;border-left-color:var(--primary)}
+.tab-content{flex:1;padding:28px;background:var(--surface)}
+.tab-content h4{color:var(--primary-dark);margin-bottom:12px;font-size:1.05em}
+.tab-content p{color:var(--muted);font-size:.9em;margin-bottom:8px}
+.tab-content .field-list{list-style:none;padding:0}
+.tab-content .field-list li{padding:8px 0;border-bottom:1px solid var(--border);display:flex;gap:12px;font-size:.88em}
+.tab-content .field-list li:last-child{border-bottom:none}
+.field-name{font-weight:600;color:var(--text);min-width:120px}
+.field-desc{color:var(--muted)}
+
+/* Code block */
+.code-block{background:#1e293b;color:#e2e8f0;border-radius:12px;padding:20px 24px;font-family:'Cascadia Code',Consolas,monospace;font-size:.85em;line-height:1.8;overflow-x:auto;margin:12px 0}
+.code-block .key{color:#79c6b2}
+.code-block .str{color:#f0c56a}
+.code-block .comment{color:#708793}
+
+/* Tip box */
+.tip{background:var(--primary-light);border-left:4px solid var(--primary);border-radius:0 12px 12px 0;padding:16px 20px;margin:16px 0;font-size:.9em}
+.tip.warn{background:#fff7ed;border-left-color:var(--danger)}
+.tip strong{color:var(--primary-dark)}
+
+/* FAQ */
+.faq-item{border:1px solid var(--border);border-radius:14px;margin-bottom:12px;overflow:hidden;background:var(--surface)}
+.faq-q{padding:16px 20px;font-weight:600;cursor:pointer;display:flex;justify-content:space-between;align-items:center;transition:background .2s}
+.faq-q:hover{background:var(--primary-light)}
+.faq-q::after{content:'+';color:var(--primary);font-size:1.2em;font-weight:700;transition:transform .2s}
+.faq-item.open .faq-q::after{transform:rotate(45deg)}
+.faq-a{padding:0 20px;max-height:0;overflow:hidden;transition:all .3s;color:var(--muted);font-size:.9em}
+.faq-item.open .faq-a{padding:16px 20px;max-height:300px}
+
+/* Footer */
+.footer{text-align:center;padding:40px;color:var(--muted);font-size:.85em;border-top:1px solid var(--border);margin-top:40px}
+
+/* Responsive */
+@media(max-width:768px){
+.hero h1{font-size:1.8em}
+.hero{padding:50px 20px}
+.tab-demo{flex-direction:column}
+.tab-sidebar{width:100%;border-right:none;border-bottom:1px solid var(--border);display:flex;overflow-x:auto}
+.tab-sidebar .tab-item{border-left:none;border-bottom:3px solid transparent;white-space:nowrap}
+.tab-sidebar .tab-item.active{border-bottom-color:var(--primary)}
+.flow{flex-direction:column}
+.flow-arrow{transform:rotate(90deg)}
+}
+</style>
+</head>
+<body>
+
+<!-- Hero -->
+<div class="hero">
+<h1>GPT 道德限制优化工具</h1>
+<p>本地 API 代理 &middot; 拒答自动检测 &middot; 智能改写重试</p>
+<div class="version">v0.3 &middot; GUI 绿色版</div>
+</div>
+
+<!-- Nav -->
+<div class="nav">
+<div class="nav-inner">
+<a href="#intro">项目简介</a>
+<a href="#workflow">工作流程</a>
+<a href="#features">核心功能</a>
+<a href="#gui">界面总览</a>
+<a href="#config">配置详解</a>
+<a href="#faq">常见问题</a>
+</div>
+</div>
+
+<div class="container">
+
+<!-- 简介 -->
+<div class="section" id="intro">
+<div class="section-title"><span class="icon">1</span>项目简介</div>
+<div class="section-desc">一个基于 FastAPI 的 OpenAI 兼容 API 本地代理工具，GUI 采用绿色主题界面，单文件绿色免安装运行。</div>
+<div class="card">
+<div class="card-header"><span class="dot"></span>它解决什么问题？</div>
+<p>在使用 GPT 等大模型进行逆向分析、安全研究等场景时，模型经常会以"道德限制"为由拒绝回答。本工具作为<strong>本地代理中间层</strong>，自动检测模型拒答并触发智能改写重试，帮助你获取所需的技术协助。</p>
+</div>
+<div class="feature-grid">
+<div class="feature-item">
+<h4>本地代理</h4>
+<p>运行在 127.0.0.1:8999，客户端只需将 API 地址指向本地即可，无需修改客户端代码。</p>
+</div>
+<div class="feature-item">
+<h4>拒答检测</h4>
+<p>通过可配置的关键词列表，自动识别模型回复中的拒答信号（如"抱歉""I'm sorry"）。</p>
+</div>
+<div class="feature-item">
+<h4>智能改写</h4>
+<p>调用辅助模型对用户消息进行自然重写，保留核心意图，避开触发拒答的表述方式。</p>
+</div>
+<div class="feature-item">
+<h4>自动重试</h4>
+<p>改写后自动重新发送请求，最多重试 5 次（可配置），直到获得有效回复。</p>
+</div>
+<div class="feature-item">
+<h4>绿色免安装</h4>
+<p>PyInstaller 打包为单文件 EXE，无需安装 Python 环境，双击即用，配置文件同目录存放。</p>
+</div>
+<div class="feature-item">
+<h4>Rust 加速</h4>
+<p>内置 Rust Aho-Corasick 关键词匹配模块，关键词过滤性能远超纯 Python 实现。</p>
+</div>
+</div>
+</div>
+
+<!-- 工作流程 -->
+<div class="section" id="workflow">
+<div class="section-title"><span class="icon">2</span>工作流程</div>
+<div class="section-desc">了解代理如何在你和目标模型之间协调请求与响应。</div>
+<div class="flow">
+<div class="flow-step"><span class="num">1</span><h4>客户端请求</h4><p>发送至本地代理<br/>127.0.0.1:8999</p></div>
+<div class="flow-arrow">&rarr;</div>
+<div class="flow-step"><span class="num">2</span><h4>直发目标模型</h4><p>首轮不改写<br/>原样转发请求</p></div>
+<div class="flow-arrow">&rarr;</div>
+<div class="flow-step"><span class="num">3</span><h4>拒答检测</h4><p>检查回复是否<br/>命中拦截词</p></div>
+<div class="flow-arrow">&rarr;</div>
+<div class="flow-step"><span class="num">4</span><h4>智能改写</h4><p>辅助模型重写<br/>用户消息</p></div>
+<div class="flow-arrow">&rarr;</div>
+<div class="flow-step"><span class="num">5</span><h4>重试 & 放行</h4><p>改写后重发<br/>通过则返回客户端</p></div>
+</div>
+<div class="tip">
+<strong>循环机制：</strong>如果第 4-5 步仍然命中拒答词，会继续改写重试，最多循环 <code>max_retries</code> 次（默认 5 次）。如果所有重试都被拦截，则返回最后一次目标模型的原始回复。
+</div>
+</div>
+
+<!-- 核心功能 -->
+<div class="section" id="features">
+<div class="section-title"><span class="icon">3</span>核心功能</div>
+<div class="section-desc">工具提供的主要能力一览。</div>
+<div class="card">
+<div class="card-header"><span class="dot"></span>请求转发与伪造</div>
+<ul style="padding-left:20px;color:var(--muted);font-size:.9em">
+<li><strong style="color:var(--text)">全量转发</strong> &mdash; 所有 <code>/v1/*</code> 请求原样转发到目标模型接口</li>
+<li><strong style="color:var(--text)">本地伪造 /v1/models</strong> &mdash; 返回静态模型列表，方便客户端做连通性检查</li>
+<li><strong style="color:var(--text)">流式支持</strong> &mdash; 完整支持 SSE 流式响应，实时返回给客户端</li>
+</ul>
+</div>
+<div class="card">
+<div class="card-header"><span class="dot"></span>请求分类与过滤</div>
+<ul style="padding-left:20px;color:var(--muted);font-size:.9em">
+<li><strong style="color:var(--text)">主/辅请求识别</strong> &mdash; 自动区分主请求和标题生成、摘要等辅助请求</li>
+<li><strong style="color:var(--text)">辅助请求可跳过</strong> &mdash; 辅助请求直接透传，不进入改写链路</li>
+<li><strong style="color:var(--text)">HTTP 头控制</strong> &mdash; 支持 <code>x-jmp-main-request</code>、<code>x-jmp-skip-optimize</code> 等头部手动控制</li>
+</ul>
+</div>
+<div class="card">
+<div class="card-header"><span class="dot"></span>接口测试</div>
+<p style="color:var(--muted);font-size:.9em">GUI 内置目标接口和改写接口的<strong style="color:var(--text)">实时测试按钮</strong>，一键发送测试请求（"请回复：模型测试成功"），立即验证接口地址和密钥是否正确，无需借助第三方工具。</p>
+</div>
+</div>
+
+<!-- 界面总览 -->
+<div class="section" id="gui">
+<div class="section-title"><span class="icon">4</span>GUI 界面总览</div>
+<div class="section-desc">绿色主题界面，左侧边栏 + 右侧选项卡布局。</div>
+
+<div class="card" style="padding:0;overflow:hidden">
+<div class="tab-demo">
+<div class="tab-sidebar">
+<div class="tab-item active" onclick="switchTab(this,'tab-target')">目标模型</div>
+<div class="tab-item" onclick="switchTab(this,'tab-optim')">改写模型</div>
+<div class="tab-item" onclick="switchTab(this,'tab-filter')">响应过滤</div>
+<div class="tab-item" onclick="switchTab(this,'tab-log')">运行日志</div>
+<div class="tab-item" onclick="switchTab(this,'tab-about')">关于</div>
+</div>
+<div class="tab-content" id="tab-target">
+<h4>目标模型选项卡</h4>
+<p>配置最终接收请求的目标模型接口信息。</p>
+<ul class="field-list">
+<li><span class="field-name">目标模型名称</span><span class="field-desc">转发到目标后端时使用的模型名称，如 gpt-5.4</span></li>
+<li><span class="field-name">消息接口类型</span><span class="field-desc">API 类型标识：responses 或 chat.completions</span></li>
+<li><span class="field-name">推理深度</span><span class="field-desc">目标模型推理工作量级别，如 high / medium / low</span></li>
+<li><span class="field-name">目标接口地址</span><span class="field-desc">目标 API 端点，建议填写完整地址到 /v1，右侧有【测试】按钮</span></li>
+<li><span class="field-name">目标接口密钥</span><span class="field-desc">API Key，可点击眼睛图标切换显示/隐藏，留空则不发送 Authorization 头</span></li>
+</ul>
+<div class="tip" style="margin-top:12px"><strong>右侧面板</strong>展示当前部署概览：监听地址、目标模型、消息策略、配置文件路径，以及快捷保存和打开目录按钮。</div>
+</div>
+<div class="tab-content" id="tab-optim" style="display:none">
+<h4>改写模型选项卡</h4>
+<p>配置拒答后用于重写用户消息的辅助模型。</p>
+<ul class="field-list">
+<li><span class="field-name">改写模型名称</span><span class="field-desc">辅助模型名称，如 minimaxai/minimax-m2.7</span></li>
+<li><span class="field-name">改写接口地址</span><span class="field-desc">辅助模型 API 地址，右侧有【测试】按钮</span></li>
+<li><span class="field-name">改写接口密钥</span><span class="field-desc">辅助模型 API Key</span></li>
+<li><span class="field-name">记录完整改写</span><span class="field-desc">开关，启用后在日志中记录辅助模型完整的改写结果</span></li>
+<li><span class="field-name">仅改写主请求</span><span class="field-desc">开关，启用（默认）时仅对主用户请求启用改写（标题生成、摘要等辅助请求直接透传）；关闭时所有请求均进入改写链路</span></li>
+<li><span class="field-name">System Prompt</span><span class="field-desc">右侧大文本框，可直接编辑改写模型的系统提示词，支持复制和清空</span></li>
+</ul>
+</div>
+<div class="tab-content" id="tab-filter" style="display:none">
+<h4>响应过滤选项卡</h4>
+<p>管理拒答检测的关键词列表。</p>
+<ul class="field-list">
+<li><span class="field-name">拦截词列表</span><span class="field-desc">左侧文本框，每行一个关键词。仅检查最后一条模型回复，命中后丢弃并自动重试</span></li>
+</ul>
+<div class="tip" style="margin-top:12px">默认内置中英文拒答词：<code>抱歉</code> <code>不能协助</code> <code>无法提供</code> <code>I'm sorry</code> <code>I cannot assist</code> <code>as an AI</code> 等，可根据目标模型特点自由增减。</div>
+</div>
+<div class="tab-content" id="tab-log" style="display:none">
+<h4>运行日志选项卡</h4>
+<p>实时查看代理运行状态，排查问题。</p>
+<ul class="field-list">
+<li><span class="field-name">实时日志</span><span class="field-desc">持续读取本地 proxy.log，显示请求转发、过滤命中、改写重试等运行信息</span></li>
+<li><span class="field-name">复制日志</span><span class="field-desc">一键复制当前日志内容到剪贴板</span></li>
+<li><span class="field-name">清空显示</span><span class="field-desc">清空当前日志显示（不删除日志文件）</span></li>
+</ul>
+</div>
+<div class="tab-content" id="tab-about" style="display:none">
+<h4>关于选项卡</h4>
+<p>展示工具 Logo 和版本信息。</p>
+<div class="tip">最小化窗口时工具会自动缩到系统托盘，双击托盘图标可恢复窗口。托盘菜单提供：显示界面、启动代理、停止代理、退出。</div>
+</div>
+</div>
+</div>
+
+<div class="card" style="margin-top:20px">
+<div class="card-header"><span class="dot"></span>左侧边栏 - 快捷操作</div>
+<ul class="field-list">
+<li><span class="field-name">服务监听</span><span class="field-desc">设置 Host（默认 127.0.0.1）和 Port（默认 8999）</span></li>
+<li><span class="field-name">启动代理</span><span class="field-desc">绿色主按钮，以子进程方式启动代理服务</span></li>
+<li><span class="field-name">保存配置</span><span class="field-desc">将当前界面配置写入 config.json</span></li>
+<li><span class="field-name">重新加载配置</span><span class="field-desc">从 config.json 重新读取配置到界面</span></li>
+<li><span class="field-name">打开程序目录</span><span class="field-desc">在资源管理器中打开工具所在目录</span></li>
+<li><span class="field-name">停止代理</span><span class="field-desc">红色按钮，终止正在运行的代理进程</span></li>
+</ul>
+</div>
+</div>
+
+<!-- 配置详解 -->
+<div class="section" id="config">
+<div class="section-title"><span class="icon">5</span>配置文件详解</div>
+<div class="section-desc">config.json 位于程序同目录，包含三大配置块。</div>
+
+<div class="card">
+<div class="card-header"><span class="dot"></span>target_model - 目标模型</div>
+<table class="cfg-table">
+<thead><tr><th>字段</th><th>说明</th><th>默认值</th></tr></thead>
+<tbody>
+<tr><td><code>model</code></td><td>转发到目标后端使用的模型名</td><td>gpt-5.4</td></tr>
+<tr><td><code>message_type</code></td><td>接口类型标识：responses 或 chat.completions</td><td>responses</td></tr>
+<tr><td><code>reasoning_depth</code></td><td>推理深度：high / medium / low</td><td>high</td></tr>
+<tr><td><code>baseurl</code></td><td>目标接口地址，建议写到 /v1<br>例：<code>http://127.0.0.1:8137/v1</code></td><td>（空）</td></tr>
+<tr><td><code>apikey</code></td><td>目标接口密钥，留空则不发送 Authorization 头</td><td>（空）</td></tr>
+</tbody>
+</table>
+</div>
+
+<div class="card">
+<div class="card-header"><span class="dot"></span>optimization_model - 改写模型</div>
+<table class="cfg-table">
+<thead><tr><th>字段</th><th>说明</th><th>默认值</th></tr></thead>
+<tbody>
+<tr><td><code>model</code></td><td>辅助改写模型名称</td><td>（空）</td></tr>
+<tr><td><code>baseurl</code></td><td>改写模型接口地址</td><td>https://integrate.api.nvidia.com/v1</td></tr>
+<tr><td><code>apikey</code></td><td>改写模型接口密钥</td><td>（空）</td></tr>
+<tr><td><code>system_prompt</code></td><td>改写模型的系统提示词<br><em>核心配置，指导模型如何重写用户消息</em></td><td>内置中文提示词</td></tr>
+<tr><td><code>log_full_refined_content</code></td><td>是否在日志中记录完整改写结果</td><td>true</td></tr>
+<tr><td><code>only_main_user_request</code></td><td>是否只对主请求启用改写<br>true = 标题生成/摘要等辅助请求直接透传（默认）<br>对应 GUI 中的"仅改写主请求"开关（开关启用 = true）</td><td>true</td></tr>
+<tr><td><code>auxiliary_hint_keywords</code></td><td>辅助请求识别关键词列表<br>用于识别标题生成、摘要等辅助请求</td><td>[]（内置默认列表）</td></tr>
+<tr><td><code>max_retries</code></td><td>拒答后最大改写重试次数</td><td>5</td></tr>
+</tbody>
+</table>
+</div>
+
+<div class="card">
+<div class="card-header"><span class="dot"></span>response_filter - 响应过滤</div>
+<table class="cfg-table">
+<thead><tr><th>字段</th><th>说明</th><th>默认值</th></tr></thead>
+<tbody>
+<tr><td><code>denylist</code></td><td>拒答检测关键词列表，每项一个关键词<br>目标模型最后一条回复命中任一关键词则判定为拒答<br>触发丢弃 &rarr; 改写 &rarr; 重试流程</td><td>12 个中英文拒答词</td></tr>
+</tbody>
+</table>
+<div class="tip" style="margin-top:16px">默认拒答词：<code>抱歉</code> <code>不能协助</code> <code>无法协助</code> <code>无法提供</code> <code>不能提供</code> <code>不能帮助</code> <code>无法帮助</code> <code>不能继续</code> <code>I'm sorry</code> <code>I cannot assist</code> <code>as an AI</code> <code>不受支持</code></div>
+</div>
+
+<div class="card">
+<div class="card-header"><span class="dot"></span>配置文件示例</div>
+<div class="code-block"><pre style="margin:0;font-family:inherit;font-size:inherit;line-height:inherit;white-space:pre">{
+  <span class="key">"target_model"</span>: {
+    <span class="key">"model"</span>:            <span class="str">"gpt-5.4"</span>,
+    <span class="key">"message_type"</span>:     <span class="str">"responses"</span>,
+    <span class="key">"reasoning_depth"</span>:  <span class="str">"high"</span>,
+    <span class="key">"baseurl"</span>:          <span class="str">"http://127.0.0.1:8137/v1"</span>,
+    <span class="key">"apikey"</span>:           <span class="str">"sk-your-target-key"</span>
+  },
+  <span class="key">"optimization_model"</span>: {
+    <span class="key">"model"</span>:                    <span class="str">"minimaxai/minimax-m2.7"</span>,
+    <span class="key">"baseurl"</span>:                  <span class="str">"https://integrate.api.nvidia.com/v1"</span>,
+    <span class="key">"apikey"</span>:                   <span class="str">"nvapi-your-optim-key"</span>,
+    <span class="key">"log_full_refined_content"</span>: <span class="str">true</span>,
+    <span class="key">"system_prompt"</span>:            <span class="str">"你是一名提示优化助手..."</span>,
+    <span class="key">"max_retries"</span>:              <span class="str">5</span>
+  },
+  <span class="key">"response_filter"</span>: {
+    <span class="key">"denylist"</span>: [
+      <span class="str">"抱歉"</span>,
+      <span class="str">"不能协助"</span>,
+      <span class="str">"无法提供"</span>,
+      <span class="str">"I'm sorry"</span>,
+      <span class="str">"I cannot assist"</span>,
+      <span class="str">"as an AI"</span>
+    ]
+  }
+}</pre></div>
+</div>
+</div>
+
+<!-- 快速上手 -->
+<div class="section">
+<div class="section-title"><span class="icon">6</span>快速上手</div>
+<div class="section-desc">三步开始使用。</div>
+<div class="card">
+<div class="card-header"><span class="dot"></span>Step 1 - 配置目标模型</div>
+<p style="color:var(--muted);font-size:.9em">打开 GUI，在<strong style="color:var(--text)">目标模型</strong>选项卡中填入：</p>
+<ul style="padding-left:20px;color:var(--muted);font-size:.9em;margin-top:8px">
+<li>目标模型名称（如 <code>gpt-5.4</code>）</li>
+<li>目标接口地址（写到 <code>/v1</code>）</li>
+<li>目标接口密钥</li>
+</ul>
+<p style="color:var(--muted);font-size:.9em;margin-top:8px">点击接口地址右侧的【测试】按钮验证连通性。</p>
+</div>
+<div class="card">
+<div class="card-header"><span class="dot"></span>Step 2 - 配置改写模型</div>
+<p style="color:var(--muted);font-size:.9em">切换到<strong style="color:var(--text)">改写模型</strong>选项卡，填入辅助模型信息：</p>
+<ul style="padding-left:20px;color:var(--muted);font-size:.9em;margin-top:8px">
+<li>改写模型名称（如 <code>minimaxai/minimax-m2.7</code>）</li>
+<li>改写接口地址和密钥</li>
+<li>可选：调整 system_prompt 和最大重试次数</li>
+</ul>
+</div>
+<div class="card">
+<div class="card-header"><span class="dot"></span>Step 3 - 启动并使用</div>
+<p style="color:var(--muted);font-size:.9em">点击左侧【启动代理】按钮，然后在客户端中将 API 地址设为：</p>
+<div class="code-block" style="margin:8px 0">http://127.0.0.1:8999/v1</div>
+<p style="color:var(--muted);font-size:.9em">客户端的所有请求将通过代理转发，拒答时自动改写重试。</p>
+</div>
+</div>
+
+<!-- FAQ -->
+<div class="section" id="faq">
+<div class="section-title"><span class="icon">7</span>常见问题</div>
+<div class="faq-item" onclick="this.classList.toggle('open')">
+<div class="faq-q">需要安装 Python 吗？</div>
+<div class="faq-a">不需要。EXE 绿色版通过 PyInstaller 打包，双击即可运行，所有依赖已内嵌。如需从源码运行则需 Python 3.10+ 环境。</div>
+</div>
+<div class="faq-item" onclick="this.classList.toggle('open')">
+<div class="faq-q">改写模型和目标模型可以用同一个吗？</div>
+<div class="faq-a">技术上可以，但不推荐。目标模型已经对某些问题拒答了，用同一个模型改写效果可能不佳。建议使用一个更开放、限制更少的模型作为改写模型。</div>
+</div>
+<div class="faq-item" onclick="this.classList.toggle('open')">
+<div class="faq-q">配置修改后需要重启代理吗？</div>
+<div class="faq-a">是的。修改配置后先点击【保存配置】，然后停止再重新启动代理，新配置才会生效。</div>
+</div>
+<div class="faq-item" onclick="this.classList.toggle('open')">
+<div class="faq-q">日志在哪里查看？</div>
+<div class="faq-a">两种方式：1) GUI 的"运行日志"选项卡实时查看；2) 打开程序同目录下的 <code>proxy.log</code> 文件。日志每次启动代理时会清空重建。</div>
+</div>
+<div class="faq-item" onclick="this.classList.toggle('open')">
+<div class="faq-q">支持哪些客户端？</div>
+<div class="faq-a">所有兼容 OpenAI API 格式的客户端都可以使用，包括 ChatGPT-Next-Web、LobeChat、Open WebUI、Cursor、继续 等。只需将 API 地址指向 <code>http://127.0.0.1:8999/v1</code> 即可。</div>
+</div>
+<div class="faq-item" onclick="this.classList.toggle('open')">
+<div class="faq-q">为什么最小化后找不到窗口了？</div>
+<div class="faq-a">窗口最小化时会自动缩到系统托盘（右下角任务栏通知区域）。双击托盘图标可恢复窗口，右键托盘图标可看到快捷菜单。</div>
+</div>
+<div class="faq-item" onclick="this.classList.toggle('open')">
+<div class="faq-q">max_retries 设置多少合适？</div>
+<div class="faq-a">默认 5 次已足够覆盖大多数场景。设置过高会增加延迟和 API 开销。如果 5 次改写仍然无法通过拒答过滤，建议检查拦截词列表是否过于宽泛，或优化 system_prompt。</div>
+</div>
+</div>
+
+</div>
+
+<!-- Footer -->
+<div class="footer">
+GPT 道德限制优化工具 v0.3 &middot; GUI 绿色版 &middot; 仅供学习研究使用
+</div>
+
+<script>
+function switchTab(el,tabId){
+document.querySelectorAll('.tab-sidebar .tab-item').forEach(t=>t.classList.remove('active'));
+document.querySelectorAll('.tab-content').forEach(c=>c.style.display='none');
+el.classList.add('active');
+document.getElementById(tabId).style.display='block';
+}
+document.querySelectorAll('.nav a').forEach(a=>{
+a.addEventListener('click',function(){
+document.querySelectorAll('.nav a').forEach(n=>n.classList.remove('active'));
+this.classList.add('active');
+});
+});
+</script>
+</body>
+</html>

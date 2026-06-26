@@ -1,0 +1,16 @@
+# Core dependencies
+fastapi>=0.100.0
+uvicorn>=0.23.0
+httpx>=0.24.0
+
+# GUI dependencies (optional, for gui_app.py)
+customtkinter>=5.2.0
+Pillow>=10.0.0
+pystray>=0.19.0
+
+# Windows system tray (optional, Windows only)
+pywin32>=305; sys_platform == "win32"
+
+# Rust filter (optional, provides faster Aho-Corasick matching)
+# Build from rust_filter/ directory:
+#   pip install maturin && cd rust_filter && maturin develop --release
